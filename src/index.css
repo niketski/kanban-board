@@ -7,5 +7,5 @@
 }
 
 body {
-  @apply font-roboto text-[16px] bg-[#2d3436] text-white;
+  @apply font-roboto text-[16px];
 }

@@ -1,10 +1,11 @@
 import './App.css'
+import Header from './components/header'
 
 function App() {
 
   return (
     <main>
-      <h1>Hello World</h1>
+      <Header title="Kanban Board"/>
     </main>
   )
 }
