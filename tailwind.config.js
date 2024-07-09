@@ -5,7 +5,11 @@ export default {
     fontFamily: {
       roboto: ['Roboto', 'sans-serif']
     },
-    extend: {},
+    extend: {
+      colors: {
+        primary: '#2e86de'
+      }
+    },
   },
   plugins: [],
 }

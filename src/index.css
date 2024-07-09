@@ -7,5 +7,5 @@
 }
 
 body {
-  @apply font-roboto text-[16px];
+  @apply font-roboto text-[16px] bg-[#ecf0f1] text-[#2d3436] overflow-x-auto;
 }
