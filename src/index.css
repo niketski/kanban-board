@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply m-0 box-border p-0;
+}
+
+body {
+  @apply font-roboto text-[16px] bg-[#2d3436] text-white;
+}
