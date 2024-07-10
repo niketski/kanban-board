@@ -1,56 +1,49 @@
-import { Trash2, Plus } from "lucide-react"
+import { useState } from "react"
+import KanbanColumn from "./kanban-column"
+import { Column } from "../types";
 
+const INITIAL_COLUMNS: Column[] = [
+  {
+    id: 1,
+    title: 'Column 1'
+  },
+  {
+    id: 2,
+    title: 'Column 2'
+  },
+  {
+    id: 3,
+    title: 'Column 3'
+  },
+  {
+    id: 4,
+    title: 'Column 4'
+  },
+  {
+    id: 5,
+    title: 'Column 5'
+  }
+];
 function KanbanBoard() {
+  const [columns] = useState<Column[]>(INITIAL_COLUMNS);
+
   return (
     <div className="pt-4 pb-5">
 
         <div className="px-8 flex">
 
-            {/* column */}
-            <div className="px-5">
-
-                
-                <div className="min-h-[500px] w-[400px] border-2 bg-white rounded-lg shadow-lg flex flex-col">
-                    {/* column heading */}
-                    <div className="bg-primary flex justify-between items-center py-3 px-4 rounded-tl-lg rounded-tr-lg">
-                        <div className="flex items-center">
-                            <span className="bg-white text-primary py-1 px-2 text-[14px] leading-none rounded-lg inline-block mr-3">5</span>
-                            <h3 className="text-white font-bold">Column 1</h3>
-                        </div>
-                        <div className="flex items-center">
-                            <button className="text-white outline-none text-[10px] mr-3 hover:opacity-70 transition-opacity" title="Add task">
-                                <Plus/>
-                            </button>
-                            <button className="text-white hover:opacity-70 transition-opacity outline-none" title="Delete column">
-                                <Trash2/>
-                            </button>
-                        </div>
-                    </div>
-                    {/* end column heading */}
-
-                    {/* column body */}
-                    <div className=" flex-1 overflow-y-auto p-4">
-                        <div className="flex flex-col">
-                            <div>Task</div>
-                            <div>Task</div>
-                            <div>Task</div>
-                            <div>Task</div>
-                            <div>Task</div>
-                            <div>Task</div>
-                            <div>Task</div>
-                            <div>Task</div>
-                            <div>Task</div>
-                            <div>Task</div>
-                            <div>Task</div>
-                        </div>
-                        
-                    </div>
-                    {/* end column body */}
-                </div>
-                
-
-            </div>
-            {/* end column */}
+          {
+            columns && 
+              columns.map(column => {
+                return (
+                  <KanbanColumn 
+                    key={column.id}
+                    id={column.id}
+                    title={column.title}/>
+                )
+              })
+          }
+           
 
 
         </div>
