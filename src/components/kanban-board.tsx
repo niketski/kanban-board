@@ -28,31 +28,31 @@ const INITIAL_COLUMNS: Column[] = [
 const INITIAL_TASKS: Task[] = [
   {
     id: 1,
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed',
+    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed 1',
     priority: 'high',
     columnId: 1
   },
   {
     id: 2,
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed',
+    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed 2',
     priority: 'low',
     columnId: 1
   },
   {
     id: 3,
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed',
+    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed 3',
     priority: 'low',
     columnId: 2
   },
   {
     id: 4,
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed',
+    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed 4',
     priority: 'high',
     columnId: 4
   },
   {
     id: 5,
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed',
+    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed 5',
     priority: 'medium',
     columnId: 3
   }
@@ -70,7 +70,7 @@ function KanbanBoard() {
           {
             columns && 
               columns.map(column => {
-                const filteredTasks = tasks.filter(task => task.id === column.id); // filter task based on the corresponding column
+                const filteredTasks = tasks.filter(task => task.columnId === column.id); // filter task based on the corresponding column
 
                 return (
                   <KanbanColumn 
