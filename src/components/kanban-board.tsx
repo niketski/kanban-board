@@ -1,6 +1,7 @@
 import { useState } from "react"
 import KanbanColumn from "./kanban-column"
-import { Column, Task } from "../types";
+import { Column, Id, Task } from "../types";
+import { Plus } from "lucide-react";
 
 const INITIAL_COLUMNS: Column[] = [
   {
@@ -59,12 +60,60 @@ const INITIAL_TASKS: Task[] = [
 ];
 
 function KanbanBoard() {
-  const [columns] = useState<Column[]>(INITIAL_COLUMNS);
-  const [ tasks ] = useState<Task[]>(INITIAL_TASKS);
+  const [ columns, setColumns] = useState<Column[]>(INITIAL_COLUMNS);
+  const [ tasks, setTasks ] = useState<Task[]>(INITIAL_TASKS);
 
+  // create column
+  const createColumn = (): void => {
+      const newColumn = {
+        id: Date.now(), // generate unique id based on the date
+        title: `Column ${columns.length + 1}`
+      }
+
+      setColumns([...columns, newColumn]);
+  };
+
+  // delete column
+  const deleteColumn = (columnId: Id): void => {
+    const updatedcolumns = columns.filter(column => column.id !== columnId);
+    const updatedTasks = tasks.filter(task => task.columnId !== columnId); // delete all the tasks under the deleted column
+
+    setColumns(updatedcolumns);
+    setTasks(updatedTasks);
+  };
+
+  // update column
+  const updateColumn = (columnId: Id, title: string): void => {
+    
+    const updatedColumns = columns.map(column => {
+
+      if(column.id !== columnId) {
+        return column;
+      }
+
+      return {
+        ...column,
+        title
+      }
+
+    });
+
+    setColumns(updatedColumns);
+  };
+
+  console.log(columns);
   return (
     <div className="pt-4 pb-5">
-
+        <div className="px-[52px] mb-10">
+          <button 
+            className=" inline-flex items-center rounded-lg bg-white text-primary font-bold py-3 px-5 shadow-sm mr-5 transition-shadow hover:shadow-lg"
+            onClick={() => createColumn()}>
+            <Plus className="mr-2"/> Add column
+          </button>
+          <button className=" inline-flex items-center rounded-lg bg-primary text-white font-bold py-3 px-5 shadow-sm transition-shadow hover:shadow-lg">
+            <Plus className="mr-2"/> Add task
+          </button>
+        </div>
         <div className="px-8 flex">
 
           {
@@ -77,7 +126,9 @@ function KanbanBoard() {
                     key={column.id}
                     id={column.id}
                     title={column.title}
-                    tasks={filteredTasks}/>
+                    tasks={filteredTasks}
+                    handleDeleteColumn={deleteColumn}
+                    handleUpdateColumn={updateColumn}/>
                 )
               })
           }
