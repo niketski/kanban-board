@@ -2,6 +2,7 @@ import { useState } from "react"
 import KanbanColumn from "./kanban-column"
 import { Column, Id, Task } from "../types";
 import { Plus } from "lucide-react";
+import Modal from "./modal";
 
 const INITIAL_COLUMNS: Column[] = [
   {
@@ -62,6 +63,7 @@ const INITIAL_TASKS: Task[] = [
 function KanbanBoard() {
   const [ columns, setColumns] = useState<Column[]>(INITIAL_COLUMNS);
   const [ tasks, setTasks ] = useState<Task[]>(INITIAL_TASKS);
+  const [isAddTaskModalActive, setIsAddTaskModalActive] = useState(false);
 
   // create column
   const createColumn = (): void => {
@@ -101,7 +103,6 @@ function KanbanBoard() {
     setColumns(updatedColumns);
   };
 
-  console.log(columns);
   return (
     <div className="pt-4 pb-5">
         <div className="px-[52px] mb-10">
@@ -110,7 +111,9 @@ function KanbanBoard() {
             onClick={() => createColumn()}>
             <Plus className="mr-2"/> Add column
           </button>
-          <button className=" inline-flex items-center rounded-lg bg-primary text-white font-bold py-3 px-5 shadow-sm transition-shadow hover:shadow-lg">
+          <button 
+            onClick={() => { setIsAddTaskModalActive(true) }}
+            className=" inline-flex items-center rounded-lg bg-primary text-white font-bold py-3 px-5 shadow-sm transition-shadow hover:shadow-lg">
             <Plus className="mr-2"/> Add task
           </button>
         </div>
@@ -136,7 +139,12 @@ function KanbanBoard() {
 
 
         </div>
-        
+
+        {isAddTaskModalActive && 
+          <Modal onClose={() => { setIsAddTaskModalActive(false) }}>
+              <div>Hello World</div>
+          </Modal>
+        }
     </div>
   )
 }
