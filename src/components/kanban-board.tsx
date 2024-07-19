@@ -3,6 +3,7 @@ import KanbanColumn from "./kanban-column"
 import { Column, Id, Task } from "../types";
 import { Plus } from "lucide-react";
 import Modal from "./modal";
+import AddTaskForm from "./add-task-form";
 
 const INITIAL_COLUMNS: Column[] = [
   {
@@ -107,13 +108,13 @@ function KanbanBoard() {
     <div className="pt-4 pb-5">
         <div className="px-[52px] mb-10">
           <button 
-            className=" inline-flex items-center rounded-lg bg-white text-primary font-bold py-3 px-5 shadow-sm mr-5 transition-shadow hover:shadow-lg"
+            className="btn-primary"
             onClick={() => createColumn()}>
             <Plus className="mr-2"/> Add column
           </button>
           <button 
             onClick={() => { setIsAddTaskModalActive(true) }}
-            className=" inline-flex items-center rounded-lg bg-primary text-white font-bold py-3 px-5 shadow-sm transition-shadow hover:shadow-lg">
+            className="btn-secondary">
             <Plus className="mr-2"/> Add task
           </button>
         </div>
@@ -142,7 +143,9 @@ function KanbanBoard() {
 
         {isAddTaskModalActive && 
           <Modal onClose={() => { setIsAddTaskModalActive(false) }}>
-              <div>Hello World</div>
+              <AddTaskForm 
+                title="Add Task"
+                columns={columns}/>
           </Modal>
         }
     </div>
