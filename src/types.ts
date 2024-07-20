@@ -5,9 +5,11 @@ export type Column = {
     title: string
 }
 
+export type Priority = 'high' | 'medium' | 'low';
+
 export type Task = {
     id: Id,
     content: string,
-    priority: 'high' | 'medium' | 'low'
+    priority: Priority
     columnId: Id
 }

@@ -1,13 +1,14 @@
 import { useRef } from "react"
 import { ChevronDown } from 'lucide-react'
-import { Column } from "../types";
+import { Column, Priority } from "../types";
 
 interface AddTaskFormProps {
     title: string,
-    columns: Column[]
+    columns: Column[],
+    onSubmit: (content: string, priority: Priority, columnId: string) => void
 }
 
-function AddTaskForm({ title, columns }: AddTaskFormProps) {
+function AddTaskForm({ title, columns, onSubmit }: AddTaskFormProps) {
     const priorityRef = useRef<HTMLSelectElement>(null);
     const content = useRef<HTMLTextAreaElement>(null);
     const column = useRef<HTMLSelectElement>(null);
@@ -15,14 +16,19 @@ function AddTaskForm({ title, columns }: AddTaskFormProps) {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const taskPriority = priorityRef.current?.value;
-        const taskContent = content.current?.value;
-        const taskColumn = column.current?.value;
+        const taskPriority = priorityRef.current;
+        const taskContent = content.current;
+        const taskColumn = column.current;
 
-        console.log(taskPriority);
-        console.log(taskContent);
-        console.log(taskColumn);
-    
+        if(taskContent && taskPriority && taskColumn) {
+
+            onSubmit(taskContent.value, taskPriority.value as Priority, taskColumn.value);
+
+            taskPriority.value = '';
+            taskContent.value = '';
+            taskColumn.value = '';
+        }   
+
     };
 
     return (
@@ -34,7 +40,9 @@ function AddTaskForm({ title, columns }: AddTaskFormProps) {
                     className="field"
                     name="priority" 
                     id="priority" 
-                    ref={priorityRef}>
+                    ref={priorityRef}
+                    required>
+                        <option value="">Select Priority</option>
                         <option value="low">Low</option>
                         <option value="medium">Medium</option>
                         <option value="high">High</option>
@@ -47,7 +55,9 @@ function AddTaskForm({ title, columns }: AddTaskFormProps) {
                         className="field"
                         name="column" 
                         id="column" 
-                        ref={column}>
+                        ref={column}
+                        required>
+                            <option value="">Select column</option>
                             {columns.map(column => {
                                 return (
                                     <option 

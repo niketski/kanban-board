@@ -41,7 +41,6 @@ function KanbanColumn({ title, tasks, id, handleDeleteColumn, handleUpdateColumn
 
     };
 
-
     return (
         <div className="px-5">  
             <div className="min-h-[500px] w-[400px] border-2 bg-white rounded-lg shadow-lg flex flex-col">

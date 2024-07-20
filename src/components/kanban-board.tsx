@@ -1,6 +1,6 @@
 import { useState } from "react"
 import KanbanColumn from "./kanban-column"
-import { Column, Id, Task } from "../types";
+import { Column, Id, Priority, Task } from "../types";
 import { Plus } from "lucide-react";
 import Modal from "./modal";
 import AddTaskForm from "./add-task-form";
@@ -104,6 +104,22 @@ function KanbanBoard() {
     setColumns(updatedColumns);
   };
 
+  // create task
+  const createTask = (content: string, priority: Priority, columnId: string): void => {
+    const newTask: Task = {
+      id: Date.now(), // generate unique id based on the date
+      content,
+      columnId,
+      priority
+    };
+
+    setTasks(prevState => {
+      return [...prevState, newTask]
+    });
+  };
+
+  console.log(columns);
+  
   return (
     <div className="pt-4 pb-5">
         <div className="px-[52px] mb-10">
@@ -123,8 +139,8 @@ function KanbanBoard() {
           {
             columns && 
               columns.map(column => {
-                const filteredTasks = tasks.filter(task => task.columnId === column.id); // filter task based on the corresponding column
-
+                const filteredTasks = tasks.filter(task => task.columnId == column.id); // filter task based on the corresponding column
+                
                 return (
                   <KanbanColumn 
                     key={column.id}
@@ -144,6 +160,7 @@ function KanbanBoard() {
         {isAddTaskModalActive && 
           <Modal onClose={() => { setIsAddTaskModalActive(false) }}>
               <AddTaskForm 
+                onSubmit={createTask}
                 title="Add Task"
                 columns={columns}/>
           </Modal>
