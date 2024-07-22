@@ -1,4 +1,4 @@
-import { Id, Task } from "../types"
+import { Id, Priority, Task } from "../types"
 import { Trash2, Plus, GripVertical } from "lucide-react"
 import TaskCard from "./task-card"
 import { ChangeEvent, KeyboardEvent, useRef, useState } from "react"
@@ -9,9 +9,23 @@ interface KanbanColumnProps {
     tasks: Task[],
     handleDeleteColumn: (columnId: Id) => void,
     handleUpdateColumn: (columnId: Id, title: string) => void
+    handleCreateTask: (content: string, priority: Priority, columnId: Id, isEditMode?: boolean) => void,
+    handleUpdateTask: (id: Id, priority: Priority, content: string, columnId: Id) => void,
+    handleDeleteTask: (id: Id) => void,
+    handleShowAddTaskFormPopup?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-function KanbanColumn({ title, tasks, id, handleDeleteColumn, handleUpdateColumn } : KanbanColumnProps) {
+function KanbanColumn(
+    { 
+        title, 
+        tasks, 
+        id, 
+        handleDeleteColumn, 
+        handleUpdateColumn,
+        handleCreateTask, 
+        handleUpdateTask,
+        handleDeleteTask,
+    } : KanbanColumnProps) {
     const [editMode, setEditMode] = useState<boolean>(false);
     const [titleValue, setTitleValue] = useState<string>(title);
     const titleRef = useRef(null);
@@ -64,13 +78,21 @@ function KanbanColumn({ title, tasks, id, handleDeleteColumn, handleUpdateColumn
                         }
 
                         {!editMode &&
-                            <h3 className="text-white font-bold" ref={titleRef} onClick={() => { setEditMode(true) }}>{titleValue}</h3>
+                            <h3 
+                                className="text-white font-bold" 
+                                ref={titleRef} 
+                                onClick={() => { setEditMode(true) }}>
+                                    {titleValue}
+                            </h3>
                         }
                         
                         {tasks.length ? <span className="bg-white text-primary py-1 px-2 text-[14px] leading-none rounded-lg inline-block ml-3">{tasks.length}</span> : null}
                     </div>
                     <div className="flex items-center">
-                        <button className="text-white outline-none text-[10px] mr-3 hover:opacity-70 transition-opacity" title="Add task">
+                        <button 
+                            onClick={() => { handleCreateTask('', 'low', id, true) }}
+                            className="text-white outline-none text-[10px] mr-3 hover:opacity-70 transition-opacity" 
+                            title="Add task">
                             <Plus/>
                         </button>
                         <button 
@@ -94,7 +116,10 @@ function KanbanColumn({ title, tasks, id, handleDeleteColumn, handleUpdateColumn
 
                                     <TaskCard
                                         key={task.id}
-                                        task={task}/>
+                                        task={task}
+                                        handleUpdateTask={handleUpdateTask}
+                                        handleDeleteTask={handleDeleteTask}
+                                        contentActive={task.isEditMode}/>
                                 );
 
                             })

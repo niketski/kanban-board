@@ -1,14 +1,22 @@
 import { GripVertical, Trash2 } from "lucide-react"
-import { Task } from "../types"
+import { Task, Id, Priority } from "../types"
+import { ChangeEvent, useState, KeyboardEvent } from "react";
 
 interface TasksCardProps {
-    task: Task
+    task: Task,
+    contentActive?: boolean,
+    handleUpdateTask: (id: Id, priority: Priority, content: string, columnId: Id) => void,
+    handleDeleteTask: (id: Id) => void
 }
 
-function TaskCard({ task }: TasksCardProps) {
+function TaskCard({ task, contentActive = false, handleUpdateTask, handleDeleteTask }: TasksCardProps) {
     let statusBgColor: string = 'bg-[#55efc4]';
+    const [contentValue, setContentValue] = useState(task.content);
+    const [priorityValue, setPriorityValue] = useState<Priority>(task.priority);
+    const [contentEditMode, setContentEditMode] = useState(contentActive);
+    const [priorityEditMode, setPriorityEditMode] = useState(false);
 
-    switch(task.priority) {
+    switch(priorityValue) {
 
         case 'high':
 
@@ -30,6 +38,36 @@ function TaskCard({ task }: TasksCardProps) {
 
     }
 
+    const handleContentBlur = (): void => {
+
+        setContentEditMode(false); 
+        handleUpdateTask(task.id, task.priority, contentValue, task.columnId);
+    };
+
+    const handleContentKeyChange = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
+
+        if(event.key === 'Enter') {
+
+            setContentEditMode(false);
+            handleUpdateTask(task.id, task.priority, contentValue, task.columnId);
+
+        }
+    };
+
+    const handlePriorityChange = (event: ChangeEvent<HTMLSelectElement>): void => {
+
+        if(event.target.value != '') {
+            const newPriority = event.target.value as Priority;
+
+            setPriorityValue(newPriority);
+            handleUpdateTask(task.id, newPriority, task.content, task.columnId);
+            setPriorityEditMode(false);
+
+        }
+        
+    };
+
+
     return (
         <div className="py-2">
             <div className="rounded-lg shadow bg-white px-4 break-words pt-5 pb-4">
@@ -38,17 +76,64 @@ function TaskCard({ task }: TasksCardProps) {
                         <button className="text-gray-400 hover:opacity-70 transition-opacity outline-none mr-2" title="Delete task">
                             <GripVertical/>
                         </button>
-                        <p className="text-[12px]">Priority: <span className={`font-bold inline-block ml-2 px-2 py-1 ${statusBgColor} leading-none rounded-lg text-white capitalize`}>{task.priority}</span></p>
+                        
+                        {!priorityEditMode && 
+                            <p 
+                                onClick={() => { setPriorityEditMode(true) }}
+                                className="text-[12px] cursor-pointer"
+                                title="Click to update">
+                                Priority: <span className={`font-bold inline-block ml-2 px-2 py-1 ${statusBgColor} leading-none rounded-lg text-white capitalize`}>{priorityValue}</span>
+                            </p>
+                        }
+
+                        {priorityEditMode && 
+                            <div className="relative">
+                                <select 
+                                    name="priority" 
+                                    id="priority" 
+                                    value={priorityValue}
+                                    onChange={handlePriorityChange}
+                                    onBlur={() => { setPriorityEditMode(false) }}
+                                    required>
+                                        <option value="">Select Priority</option>
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                </select>
+                            
+                        </div>
+                        }
+                        
                     </div>
                     <div>
-                        <button className="text-gray-400 hover:opacity-70 transition-opacity outline-none" title="Delete task">
+                        <button 
+                            className="text-gray-400 hover:opacity-70 transition-opacity outline-none" 
+                            title="Delete task"
+                            onClick={() => { handleDeleteTask(task.id) }}>
                             <Trash2/>
                         </button>
                     </div>
                 </div>
-                <div>
-                    {task.content}
-                </div>
+                
+                {!contentEditMode && 
+                    <div 
+                        onClick={() => { setContentEditMode(true) }} 
+                        className="py-5 cursor-pointer" 
+                        title="Click to edit">
+                            {task.content}
+                    </div>
+                }
+
+                {contentEditMode && 
+                    <textarea 
+                        autoFocus
+                        onKeyDown={handleContentKeyChange}
+                        onBlur={handleContentBlur}
+                        onChange={(event: ChangeEvent<HTMLTextAreaElement>) => { setContentValue(event.target.value) }}
+                        value={contentValue}
+                        className="field-textarea"></textarea>
+                }
+                
             </div>
         </div>
     );

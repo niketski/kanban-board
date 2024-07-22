@@ -11,5 +11,6 @@ export type Task = {
     id: Id,
     content: string,
     priority: Priority
-    columnId: Id
+    columnId: Id,
+    isEditMode?: boolean
 }

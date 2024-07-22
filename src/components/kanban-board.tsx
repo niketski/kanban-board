@@ -105,20 +105,53 @@ function KanbanBoard() {
   };
 
   // create task
-  const createTask = (content: string, priority: Priority, columnId: string): void => {
+  const createTask = (content: string, priority: Priority, columnId: Id, isEditMode: boolean = false): void => {
     const newTask: Task = {
       id: Date.now(), // generate unique id based on the date
       content,
       columnId,
-      priority
+      priority,
+      isEditMode
     };
 
     setTasks(prevState => {
       return [...prevState, newTask]
     });
+
+    console.log('task has been created.')
   };
 
-  console.log(columns);
+  // update task
+  const updateTask = (id: Id, priority: Priority, content: string, columnId: Id) => {
+    
+
+    setTasks(prevTasks => {
+      const updatedTask = prevTasks.map(task => {
+
+        if(task.id != id) {
+          return task;
+        }
+  
+        return {
+          ...task,
+          priority,
+          content,
+          columnId
+        }
+  
+      });
+
+      return updatedTask;
+    });
+
+  };
+
+  // delete task
+  const deleteTask = (id: Id) => {
+    const filteredTasks = tasks.filter(task => task.id != id);
+
+    setTasks(filteredTasks);
+  };
   
   return (
     <div className="pt-4 pb-5">
@@ -148,12 +181,15 @@ function KanbanBoard() {
                     title={column.title}
                     tasks={filteredTasks}
                     handleDeleteColumn={deleteColumn}
-                    handleUpdateColumn={updateColumn}/>
+                    handleUpdateColumn={updateColumn}
+                    handleCreateTask={createTask}
+                    handleUpdateTask={updateTask}
+                    handleDeleteTask={deleteTask}
+                    handleShowAddTaskFormPopup={setIsAddTaskModalActive}/>
                 )
               })
           }
            
-
 
         </div>
 
