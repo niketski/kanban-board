@@ -2,6 +2,9 @@ import { Id, Priority, Task } from "../types"
 import { Trash2, Plus, GripVertical } from "lucide-react"
 import TaskCard from "./task-card"
 import { ChangeEvent, KeyboardEvent, useRef, useState } from "react"
+import { useSortable } from "@dnd-kit/sortable"
+import { CSS } from '@dnd-kit/utilities'; 
+import { SortableContext } from "@dnd-kit/sortable"
 
 interface KanbanColumnProps {
     title: string,
@@ -29,6 +32,24 @@ function KanbanColumn(
     const [editMode, setEditMode] = useState<boolean>(false);
     const [titleValue, setTitleValue] = useState<string>(title);
     const titleRef = useRef(null);
+    const { 
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+     } = useSortable({
+        id,
+        data: {
+            type: 'column',
+            column: {
+                id,
+                title
+            }
+        },
+        disabled: editMode
+    });
 
     const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
         
@@ -55,13 +76,32 @@ function KanbanColumn(
 
     };
 
+    const style = {
+        transition,
+        transform: CSS.Transform.toString(transform)
+    };
+
+    if(isDragging) {
+        return (
+            <div
+                className="px-5"
+                ref={setNodeRef} 
+                style={style}>
+                <div className="min-h-[500px] w-[400px] border-2 bg-white rounded-lg shadow-lg flex flex-col opacity-50"></div>
+            </div>
+        );
+    }
+
     return (
-        <div className="px-5">  
+        <div 
+            className="px-5" 
+            ref={setNodeRef}
+            style={style}>  
             <div className="min-h-[500px] w-[400px] border-2 bg-white rounded-lg shadow-lg flex flex-col">
                 {/* column heading */}
                 <div className="bg-primary flex justify-between items-center py-3 px-4 rounded-tl-lg rounded-tr-lg">
                     <div className="flex items-center">
-                        <button className="text-white mr-2 outline-none border-none cursor-grab">
+                        <button className="text-white mr-2 outline-none border-none cursor-grab" {...listeners} {...attributes}>
                             <GripVertical/>
                         </button>
 
@@ -107,23 +147,24 @@ function KanbanColumn(
                 {/* column body */}
                 <div className=" flex-1 overflow-y-auto p-4">
                     <div className="flex flex-col">
+                        <SortableContext items={tasks.map(task => task.id)}>
+                            {tasks && 
 
-                        {tasks && 
+                                tasks.map(task => {
 
-                            tasks.map(task => {
+                                    return (
 
-                                return (
+                                        <TaskCard
+                                            key={task.id}
+                                            task={task}
+                                            handleUpdateTask={handleUpdateTask}
+                                            handleDeleteTask={handleDeleteTask}
+                                            contentActive={task.isEditMode}/>
+                                    );
 
-                                    <TaskCard
-                                        key={task.id}
-                                        task={task}
-                                        handleUpdateTask={handleUpdateTask}
-                                        handleDeleteTask={handleDeleteTask}
-                                        contentActive={task.isEditMode}/>
-                                );
-
-                            })
-                        }
+                                })
+                            }
+                        </SortableContext>
 
                     </div>
                     

@@ -1,70 +1,20 @@
 import { useState } from "react"
 import KanbanColumn from "./kanban-column"
+import TaskCard from "./task-card";
 import { Column, Id, Priority, Task } from "../types";
 import { Plus } from "lucide-react";
 import Modal from "./modal";
 import AddTaskForm from "./add-task-form";
-
-const INITIAL_COLUMNS: Column[] = [
-  {
-    id: 1,
-    title: 'Column 1'
-  },
-  {
-    id: 2,
-    title: 'Column 2'
-  },
-  {
-    id: 3,
-    title: 'Column 3'
-  },
-  {
-    id: 4,
-    title: 'Column 4'
-  },
-  {
-    id: 5,
-    title: 'Column 5'
-  }
-];
-
-const INITIAL_TASKS: Task[] = [
-  {
-    id: 1,
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed 1',
-    priority: 'high',
-    columnId: 1
-  },
-  {
-    id: 2,
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed 2',
-    priority: 'low',
-    columnId: 1
-  },
-  {
-    id: 3,
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed 3',
-    priority: 'low',
-    columnId: 2
-  },
-  {
-    id: 4,
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed 4',
-    priority: 'high',
-    columnId: 4
-  },
-  {
-    id: 5,
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed 5',
-    priority: 'medium',
-    columnId: 3
-  }
-];
+import { DndContext, useSensors, useSensor, PointerSensor, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent } from '@dnd-kit/core'
+import { arrayMove, SortableContext } from "@dnd-kit/sortable";
+import { createPortal } from "react-dom";
 
 function KanbanBoard() {
-  const [ columns, setColumns] = useState<Column[]>(INITIAL_COLUMNS);
-  const [ tasks, setTasks ] = useState<Task[]>(INITIAL_TASKS);
+  const [ columns, setColumns] = useState<Column[]>([]);
+  const [ tasks, setTasks ] = useState<Task[]>([]);
   const [isAddTaskModalActive, setIsAddTaskModalActive] = useState(false);
+  const [activeColumn, setActiveColumn] = useState<Column | null>(null);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   // create column
   const createColumn = (): void => {
@@ -153,6 +103,99 @@ function KanbanBoard() {
     setTasks(filteredTasks);
   };
   
+  const handleDragStart = (event: DragStartEvent) => {
+    
+    if(event.active.data.current?.type === 'column') {
+
+      setActiveColumn(event.active.data.current.column);
+
+    }
+
+    if(event.active.data.current?.type === 'task') {
+
+      setActiveTask(event.active.data.current.task);
+
+    }
+
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveColumn(null);
+    setActiveTask(null);
+
+    const { active, over} = event;
+
+    if(!over) return;
+
+    const activeColumnId = active.id;
+    const overColumnId = over.id;
+
+    if(activeColumnId === overColumnId) return;
+
+    setColumns(columns => {
+      const activeColumnIndex = columns.findIndex(column => column.id === activeColumnId);
+      const overColumnIndex = columns.findIndex(column => column.id === overColumnId);
+
+      return arrayMove(columns, activeColumnIndex, overColumnIndex);
+    });
+    
+  };
+
+  const handleOnDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+
+    console.log('over');
+
+    if(!over) return;
+
+    const activeTaskId = active.id;
+    const overTaskId = over.id;
+
+    if(activeTaskId === overTaskId) { return; }
+
+    const isActiveTask = active.data.current?.type === 'task';
+    const isOverTask = over.data.current?.type === 'task';
+
+    if(!isActiveTask) {
+      return;
+    }
+
+    if(isActiveTask && isOverTask) { 
+      setTasks(tasks => {
+        const activeTaskIndex = tasks.findIndex(task => task.id === active.id);
+        const overTaskIndex = tasks.findIndex(task => task.id === over.id);
+
+        // change column position
+        tasks[activeTaskIndex].columnId = tasks[overTaskIndex].columnId;
+
+        return arrayMove(tasks, activeTaskIndex, overTaskIndex);
+
+      });
+    }
+
+    // drop task over a column
+    const isOverAColumn = over.data.current?.type === 'column';
+
+    // check if the active task is about to drop to column
+    if(isActiveTask && isOverAColumn) {
+      setTasks(tasks => {
+        const activeIndex = tasks.findIndex(task => task.id === activeTaskId);
+
+        tasks[activeIndex].columnId = over.id;
+
+        return arrayMove(tasks, activeIndex, activeIndex);
+      });
+    }
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5
+      },
+    })
+  );
+
   return (
     <div className="pt-4 pb-5">
         <div className="px-[52px] mb-10">
@@ -161,37 +204,77 @@ function KanbanBoard() {
             onClick={() => createColumn()}>
             <Plus className="mr-2"/> Add column
           </button>
-          <button 
-            onClick={() => { setIsAddTaskModalActive(true) }}
-            className="btn-secondary">
-            <Plus className="mr-2"/> Add task
-          </button>
+
+          {columns.length ? 
+            <button 
+              onClick={() => { setIsAddTaskModalActive(true) }}
+              className="btn-secondary">
+              <Plus className="mr-2"/> Add task
+            </button> : null
+          }
+          
         </div>
         <div className="px-8 flex">
+          <DndContext
+            sensors={sensors}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDragOver={handleOnDragOver}>
 
-          {
-            columns && 
-              columns.map(column => {
-                const filteredTasks = tasks.filter(task => task.columnId == column.id); // filter task based on the corresponding column
-                
-                return (
-                  <KanbanColumn 
-                    key={column.id}
-                    id={column.id}
-                    title={column.title}
-                    tasks={filteredTasks}
-                    handleDeleteColumn={deleteColumn}
-                    handleUpdateColumn={updateColumn}
-                    handleCreateTask={createTask}
-                    handleUpdateTask={updateTask}
-                    handleDeleteTask={deleteTask}
-                    handleShowAddTaskFormPopup={setIsAddTaskModalActive}/>
-                )
-              })
-          }
-           
+              <SortableContext items={columns.map(column => column.id)}>
+                {
+                  columns && 
+                    columns.map(column => {
+                      const filteredTasks = tasks.filter(task => task.columnId == column.id); // filter task based on the corresponding column
+                      
+                      return (
+                        <KanbanColumn 
+                          key={column.id}
+                          id={column.id}
+                          title={column.title}
+                          tasks={filteredTasks}
+                          handleDeleteColumn={deleteColumn}
+                          handleUpdateColumn={updateColumn}
+                          handleCreateTask={createTask}
+                          handleUpdateTask={updateTask}
+                          handleDeleteTask={deleteTask}
+                          handleShowAddTaskFormPopup={setIsAddTaskModalActive}/>
+                      )
+                    })
+                } 
+              </SortableContext>
 
+              {createPortal(
+                <DragOverlay>
+                  {activeColumn && 
+                    <KanbanColumn 
+                      key={activeColumn.id}
+                      id={activeColumn.id}
+                      title={activeColumn.title}
+                      tasks={tasks.filter(task => task.columnId === activeColumn.id)}
+                      handleDeleteColumn={deleteColumn}
+                      handleUpdateColumn={updateColumn}
+                      handleCreateTask={createTask}
+                      handleUpdateTask={updateTask}
+                      handleDeleteTask={deleteTask}
+                      handleShowAddTaskFormPopup={setIsAddTaskModalActive}/>
+                    }
+
+                    {activeTask && 
+                      <TaskCard
+                        key={activeTask.id}
+                        task={activeTask}
+                        handleUpdateTask={updateTask}
+                        handleDeleteTask={deleteTask}
+                        contentActive={activeTask.isEditMode}/>
+                    }
+                </DragOverlay>,
+                document.body)}
+
+          </DndContext>
         </div>
+
+        
 
         {isAddTaskModalActive && 
           <Modal onClose={() => { setIsAddTaskModalActive(false) }}>

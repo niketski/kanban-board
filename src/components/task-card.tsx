@@ -1,6 +1,8 @@
 import { GripVertical, Trash2 } from "lucide-react"
 import { Task, Id, Priority } from "../types"
 import { ChangeEvent, useState, KeyboardEvent } from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from '@dnd-kit/utilities'; 
 
 interface TasksCardProps {
     task: Task,
@@ -15,6 +17,21 @@ function TaskCard({ task, contentActive = false, handleUpdateTask, handleDeleteT
     const [priorityValue, setPriorityValue] = useState<Priority>(task.priority);
     const [contentEditMode, setContentEditMode] = useState(contentActive);
     const [priorityEditMode, setPriorityEditMode] = useState(false);
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({
+        id: task.id,
+        data: {
+            type: 'task',
+            task
+        },
+        disabled: contentEditMode
+    });
 
     switch(priorityValue) {
 
@@ -67,13 +84,36 @@ function TaskCard({ task, contentActive = false, handleUpdateTask, handleDeleteT
         
     };
 
+    const style = {
+        transition,
+        transform: CSS.Transform.toString(transform)
+    };
+
+    if(isDragging) {
+
+        return (
+            <div 
+                className="py-2"
+                style={style}
+                ref={setNodeRef}>
+                    <div className="rounded-lg shadow bg-gray-200 px-4 break-words pt-5 pb-4 min-h-[170px]"></div>
+            </div>
+        );
+    }
 
     return (
-        <div className="py-2">
+        <div 
+            className="py-2"
+            style={style}
+            ref={setNodeRef}>
             <div className="rounded-lg shadow bg-white px-4 break-words pt-5 pb-4">
                 <div className="flex justify-between items-center mb-5">
                     <div className="flex items-center">
-                        <button className="text-gray-400 hover:opacity-70 transition-opacity outline-none mr-2" title="Delete task">
+                        <button 
+                            {...attributes}
+                            {...listeners}
+                            className="text-gray-400 hover:opacity-70 transition-opacity outline-none mr-2" 
+                            title="Drag Task">
                             <GripVertical/>
                         </button>
                         
@@ -94,7 +134,8 @@ function TaskCard({ task, contentActive = false, handleUpdateTask, handleDeleteT
                                     value={priorityValue}
                                     onChange={handlePriorityChange}
                                     onBlur={() => { setPriorityEditMode(false) }}
-                                    required>
+                                    required
+                                    autoFocus>
                                         <option value="">Select Priority</option>
                                         <option value="low">Low</option>
                                         <option value="medium">Medium</option>
