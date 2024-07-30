@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { Column, Id} from "../types";
 
-interface ColumnState {
+interface ColumnStoreState {
     columns: Column[],
     activeColumn: Column | null,
     setActiveColumn: (column: Column | null) => void,
@@ -10,13 +10,13 @@ interface ColumnState {
     deleteColumn: (id: Id) => void,
 }
 
-export const useColumnStore = create<ColumnState>()((set, get) => ({
+export const useColumnStore = create<ColumnStoreState>()((set, get) => ({
     columns: [],
     activeColumn: null,
     setActiveColumn: (column: Column | null) => {
 
         set(() => ({ activeColumn: column }));
-        
+
     },
     createColumn: () => {
         const { columns } = get();
