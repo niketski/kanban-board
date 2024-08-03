@@ -5,6 +5,7 @@ import { ChangeEvent, KeyboardEvent, useRef, useState } from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from '@dnd-kit/utilities'; 
 import { SortableContext } from "@dnd-kit/sortable"
+import { useTaskStore } from "../store/use-task-store"
 
 interface KanbanColumnProps {
     title: string,
@@ -50,6 +51,7 @@ function KanbanColumn(
         },
         disabled: editMode
     });
+    const setTaskState = useTaskStore.setState;
 
     const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
         
@@ -137,7 +139,14 @@ function KanbanColumn(
                         </button>
                         <button 
                             className="text-white hover:opacity-70 transition-opacity outline-none" title="Delete column"
-                            onClick={() => { handleDeleteColumn(id) }}>
+                            onClick={() => { 
+                                handleDeleteColumn(id);
+                                setTaskState((state) => {
+                                    const updatedTasks = state.tasks.filter(task => task.columnId !== id); // delete all the tasks under the deleted column
+                                    
+                                    return { tasks: updatedTasks }
+                                });
+                            }}>
                             <Trash2/>
                         </button>
                     </div>

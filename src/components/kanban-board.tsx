@@ -1,119 +1,55 @@
 import { useState } from "react"
 import KanbanColumn from "./kanban-column"
 import TaskCard from "./task-card";
-import { Column, Id, Priority, Task } from "../types";
 import { Plus } from "lucide-react";
 import Modal from "./modal";
 import AddTaskForm from "./add-task-form";
 import { DndContext, useSensors, useSensor, PointerSensor, DragEndEvent, DragStartEvent, DragOverlay, DragOverEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
+import { useColumnStore } from "../store/use-column-store";
+import { useTaskStore } from "../store/use-task-store";
 
 function KanbanBoard() {
-  const [ columns, setColumns] = useState<Column[]>([]);
-  const [ tasks, setTasks ] = useState<Task[]>([]);
+  const { 
+      columns, 
+      activeColumn,
+      setActiveColumn,
+      createColumn, 
+      updateColumn, 
+      deleteColumn } = useColumnStore();
+  const {
+    tasks,
+    activeTask,
+    setActiveTask,
+    createTask,
+    updateTask,
+    deleteTask
+  } = useTaskStore();
   const [isAddTaskModalActive, setIsAddTaskModalActive] = useState(false);
-  const [activeColumn, setActiveColumn] = useState<Column | null>(null);
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
-
-  // create column
-  const createColumn = (): void => {
-      const newColumn = {
-        id: Date.now(), // generate unique id based on the date
-        title: `Column ${columns.length + 1}`
-      }
-
-      setColumns([...columns, newColumn]);
-  };
-
+  
   // delete column
-  const deleteColumn = (columnId: Id): void => {
-    const updatedcolumns = columns.filter(column => column.id !== columnId);
-    const updatedTasks = tasks.filter(task => task.columnId !== columnId); // delete all the tasks under the deleted column
+  // const deleteColumn = (columnId: Id): void => {
+  //   const updatedcolumns = columns.filter(column => column.id !== columnId);
+  //   const updatedTasks = tasks.filter(task => task.columnId !== columnId); // delete all the tasks under the deleted column
 
-    setColumns(updatedcolumns);
-    setTasks(updatedTasks);
-  };
+  //   setColumns(updatedcolumns);
+  //   setTasks(updatedTasks);
+  // };
 
-  // update column
-  const updateColumn = (columnId: Id, title: string): void => {
-    
-    const updatedColumns = columns.map(column => {
-
-      if(column.id !== columnId) {
-        return column;
-      }
-
-      return {
-        ...column,
-        title
-      }
-
-    });
-
-    setColumns(updatedColumns);
-  };
-
-  // create task
-  const createTask = (content: string, priority: Priority, columnId: Id, isEditMode: boolean = false): void => {
-    const newTask: Task = {
-      id: Date.now(), // generate unique id based on the date
-      content,
-      columnId,
-      priority,
-      isEditMode
-    };
-
-    setTasks(prevState => {
-      return [...prevState, newTask]
-    });
-
-    console.log('task has been created.')
-  };
-
-  // update task
-  const updateTask = (id: Id, priority: Priority, content: string, columnId: Id) => {
-    
-
-    setTasks(prevTasks => {
-      const updatedTask = prevTasks.map(task => {
-
-        if(task.id != id) {
-          return task;
-        }
-  
-        return {
-          ...task,
-          priority,
-          content,
-          columnId
-        }
-  
-      });
-
-      return updatedTask;
-    });
-
-  };
-
-  // delete task
-  const deleteTask = (id: Id) => {
-    const filteredTasks = tasks.filter(task => task.id != id);
-
-    setTasks(filteredTasks);
-  };
-  
   const handleDragStart = (event: DragStartEvent) => {
     
-    if(event.active.data.current?.type === 'column') {
+    const current = event.active.data.current;
 
-      setActiveColumn(event.active.data.current.column);
+    if(current?.type === 'column') {
+
+      setActiveColumn(current.column);
 
     }
 
-    if(event.active.data.current?.type === 'task') {
+    if(current?.type === 'task') {
 
-      setActiveTask(event.active.data.current.task);
+      setActiveTask(current.task);
 
     }
 
@@ -132,19 +68,17 @@ function KanbanBoard() {
 
     if(activeColumnId === overColumnId) return;
 
-    setColumns(columns => {
-      const activeColumnIndex = columns.findIndex(column => column.id === activeColumnId);
-      const overColumnIndex = columns.findIndex(column => column.id === overColumnId);
+    useColumnStore.setState((state) => {
+      const activeColumnIndex = state.columns.findIndex(column => column.id === activeColumnId);
+      const overColumnIndex = state.columns.findIndex(column => column.id === overColumnId);
 
-      return arrayMove(columns, activeColumnIndex, overColumnIndex);
+      return { columns: arrayMove(state.columns, activeColumnIndex, overColumnIndex) }
     });
     
   };
 
   const handleOnDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-
-    console.log('over');
 
     if(!over) return;
 
@@ -161,15 +95,15 @@ function KanbanBoard() {
     }
 
     if(isActiveTask && isOverTask) { 
-      setTasks(tasks => {
-        const activeTaskIndex = tasks.findIndex(task => task.id === active.id);
-        const overTaskIndex = tasks.findIndex(task => task.id === over.id);
+
+      useTaskStore.setState((state) => {
+        const activeTaskIndex = state.tasks.findIndex(task => task.id === active.id);
+        const overTaskIndex = state.tasks.findIndex(task => task.id === over.id);
 
         // change column position
         tasks[activeTaskIndex].columnId = tasks[overTaskIndex].columnId;
 
-        return arrayMove(tasks, activeTaskIndex, overTaskIndex);
-
+        return { tasks: arrayMove(tasks, activeTaskIndex, overTaskIndex) };
       });
     }
 
@@ -178,13 +112,15 @@ function KanbanBoard() {
 
     // check if the active task is about to drop to column
     if(isActiveTask && isOverAColumn) {
-      setTasks(tasks => {
-        const activeIndex = tasks.findIndex(task => task.id === activeTaskId);
+
+      useTaskStore.setState((state) => {
+        const activeIndex = state.tasks.findIndex(task => task.id === activeTaskId);
 
         tasks[activeIndex].columnId = over.id;
 
-        return arrayMove(tasks, activeIndex, activeIndex);
+        return { tasks: arrayMove(tasks, activeIndex, activeIndex) };
       });
+
     }
   };
 
@@ -195,6 +131,8 @@ function KanbanBoard() {
       },
     })
   );
+
+  console.log(tasks);
 
   return (
     <div className="pt-4 pb-5">
@@ -273,9 +211,6 @@ function KanbanBoard() {
 
           </DndContext>
         </div>
-
-        
-
         {isAddTaskModalActive && 
           <Modal onClose={() => { setIsAddTaskModalActive(false) }}>
               <AddTaskForm 
