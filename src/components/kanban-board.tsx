@@ -27,15 +27,6 @@ function KanbanBoard() {
     deleteTask
   } = useTaskStore();
   const [isAddTaskModalActive, setIsAddTaskModalActive] = useState(false);
-  
-  // delete column
-  // const deleteColumn = (columnId: Id): void => {
-  //   const updatedcolumns = columns.filter(column => column.id !== columnId);
-  //   const updatedTasks = tasks.filter(task => task.columnId !== columnId); // delete all the tasks under the deleted column
-
-  //   setColumns(updatedcolumns);
-  //   setTasks(updatedTasks);
-  // };
 
   const handleDragStart = (event: DragStartEvent) => {
     
@@ -131,8 +122,6 @@ function KanbanBoard() {
       },
     })
   );
-
-  console.log(tasks);
 
   return (
     <div className="pt-4 pb-5">
